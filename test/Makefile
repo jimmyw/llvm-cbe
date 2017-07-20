@@ -40,20 +40,10 @@ tollvmO3: $(addsuffix _O3.ll,$(FILES))
 	$(CLANG) $(CPPFLAGS) $< -emit-llvm -g -I./ -S -O3 -o $@
 
 tocbe: tocbeO0 tocbeO1 tocbeO2 tocbeO3
-tocbeO%: tollvmO%
-	rm -rf *_O$*.cbe.c
-	for name in $(FILES); do\
-		$(LLVMToolDir)/llvm-cbe $${name}_O$*.ll ; \
-	done
+tocbeO%:  $(addsuffix _O%.cbe.c,$(FILES))
 
-%_O0.cbe.c: tocbeO0
-	@echo built: $@
-%_O1.cbe.c: tocbeO1
-	@echo built: $@
-%_O2.cbe.c: tocbeO2
-	@echo built: $@
-%_O3.cbe.c: tocbeO3
-	@echo built: $@
+%.cbe.c: %.ll
+	$(LLVMToolDir)/llvm-cbe $<
 
 buildcbe: buildcbeO0 buildcbeO1 buildcbeO2 buildcbeO3
 buildcbeO0 : $(addsuffix _O0.cbe,$(FILES))
