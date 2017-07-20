@@ -42,7 +42,7 @@ tollvmO3: $(addsuffix _O3.ll,$(FILES))
 tocbe: tocbeO0 tocbeO1 tocbeO2 tocbeO3
 tocbeO%:  $(addsuffix _O%.cbe.c,$(FILES))
 
-%.cbe.c: %.ll
+%.cbe.c: %.ll $(LLVMToolDir)/llvm-cbe
 	$(LLVMToolDir)/llvm-cbe $<
 
 buildcbe: buildcbeO0 buildcbeO1 buildcbeO2 buildcbeO3
