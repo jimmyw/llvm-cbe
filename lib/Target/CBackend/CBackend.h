@@ -85,6 +85,8 @@ namespace {
     // will only be expanded on first use
     std::vector<Function*> prototypesToGen;
 
+    unsigned LastAnnotatedSourceLine;
+
   public:
     static char ID;
     explicit CWriter(raw_pwrite_stream &o)

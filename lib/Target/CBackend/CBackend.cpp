@@ -15,6 +15,7 @@
 #include "CBackend.h"
 #include "llvm/Analysis/ValueTracking.h"
 #include "llvm/IR/InstIterator.h"
+#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
@@ -2959,6 +2960,11 @@ void CWriter::printBasicBlock(BasicBlock *BB) {
   // Output all of the instructions in the basic block...
   for (BasicBlock::iterator II = BB->begin(), E = --BB->end(); II != E;
        ++II) {
+    DILocation *Loc = (*II).getDebugLoc();
+    if (Loc != nullptr && LastAnnotatedSourceLine != Loc->getLine()) {
+      Out << "#line " << Loc->getLine() << " \"" << Loc->getFilename() << "\"" << "\n";
+      LastAnnotatedSourceLine = Loc->getLine();
+    }
     if (!isInlinableInst(*II) && !isDirectAlloca(&*II)) {
       if (!isEmptyType(II->getType()) &&
           !isInlineAsm(*II))

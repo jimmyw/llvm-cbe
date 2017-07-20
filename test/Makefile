@@ -31,13 +31,13 @@ tollvmO1: $(addsuffix _O1.ll,$(FILES))
 tollvmO2: $(addsuffix _O2.ll,$(FILES))
 tollvmO3: $(addsuffix _O3.ll,$(FILES))
 %_O0.ll: %.c
-	$(CLANG) $(CPPFLAGS) $< -emit-llvm -I./ -S -O0 -o $@
+	$(CLANG) $(CPPFLAGS) $< -emit-llvm -g -I./ -S -O0 -o $@
 %_O1.ll: %.c
-	$(CLANG) $(CPPFLAGS) $< -emit-llvm -I./ -S -O1 -o $@
+	$(CLANG) $(CPPFLAGS) $< -emit-llvm -g -I./ -S -O1 -o $@
 %_O2.ll: %.c
-	$(CLANG) $(CPPFLAGS) $< -emit-llvm -I./ -S -O2 -o $@
+	$(CLANG) $(CPPFLAGS) $< -emit-llvm -g -I./ -S -O2 -o $@
 %_O3.ll: %.c
-	$(CLANG) $(CPPFLAGS) $< -emit-llvm -I./ -S -O3 -o $@
+	$(CLANG) $(CPPFLAGS) $< -emit-llvm -g -I./ -S -O3 -o $@
 
 tocbe: tocbeO0 tocbeO1 tocbeO2 tocbeO3
 tocbeO%: tollvmO%
