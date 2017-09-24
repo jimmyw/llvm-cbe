@@ -1819,7 +1819,7 @@ void CWriter::generateHeader(Module &M) {
   Out << "#include <limits.h>\n";      // With overflow intrinsics support.
   Out << "#include <stdint.h>\n";      // Sized integer support
   Out << "#include <math.h>\n";        // definitions for some math functions and numeric constants
-  Out << "#include <APInt-C.h>\n";     // Implementations of many llvm intrinsics
+  //Out << "#include <APInt-C.h>\n";     // Implementations of many llvm intrinsics
   // Provide a definition for `bool' if not compiling with a C++ compiler.
   Out << "#ifndef __cplusplus\ntypedef unsigned char bool;\n#endif\n";
   Out << "\n";
@@ -4325,11 +4325,11 @@ void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
     assert(I.getOperand()->getType()->isIntegerTy()); // TODO: indexing a Vector with a Vector is valid, but we don't support it here
     if (I.isStruct()) {
       Out << ".field" << cast<ConstantInt>(I.getOperand())->getZExtValue();
-    } else if ((I.getStructType())->isArrayTy()) {
+    } else if (I.isBoundedSequential()) {
       Out << ".array[";
       writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
       Out << ']';
-    } else if (!(I.getStructType())->isVectorTy()) {
+    } else if (!I.isSequential()) {
       Out << '[';
       writeOperandWithCast(I.getOperand(), Instruction::GetElementPtr);
       Out << ']';
