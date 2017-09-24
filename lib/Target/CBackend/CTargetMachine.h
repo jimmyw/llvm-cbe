@@ -21,8 +21,8 @@
 namespace llvm {
 
 struct CTargetMachine : public TargetMachine {
-  CTargetMachine(const Target &T, const Triple &TargetTriple, StringRef CPU, StringRef FS,
-                 const TargetOptions &Options, Optional<Reloc::Model> RM,
+  CTargetMachine(const Target &T, const Triple &TargetTriple, StringRef& CPU, StringRef& FS,
+                 const TargetOptions &Options, Optional<llvm::Reloc::Model>& RM,
                  CodeModel::Model CM, CodeGenOpt::Level OL)
     : TargetMachine(T, "", TargetTriple, CPU, FS, Options) { }
 
@@ -31,9 +31,8 @@ struct CTargetMachine : public TargetMachine {
   bool addPassesToEmitFile(
     PassManagerBase &PM, raw_pwrite_stream &Out, CodeGenFileType FileType,
     bool DisableVerify = true, AnalysisID StartBefore = nullptr,
-    AnalysisID StartAfter = nullptr, AnalysisID StopAfter = nullptr,
+    AnalysisID StartAfter = nullptr, AnalysisID StopBefore = nullptr, AnalysisID StopAfter = nullptr,
     MachineFunctionInitializer *MFInitializer = nullptr) override;
-
 };
 
 extern Target TheCBackendTarget;

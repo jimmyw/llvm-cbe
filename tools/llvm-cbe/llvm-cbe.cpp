@@ -389,10 +389,35 @@ static int compileModule(char **argv, LLVMContext &Context) {
   assert(M && "Should have exited if we didn't have a module!");
   if (FloatABIForCalls != FloatABI::Default)
     Options.FloatABIType = FloatABIForCalls;
+  
+  Options.NoZerosInBSS = DontPlaceZerosInBSS;
+  Options.GuaranteedTailCallOpt = EnableGuaranteedTailCallOpt;
+  Options.StackAlignmentOverride = OverrideStackAlignment;
+  //Options.PositionIndependentExecutable = EnablePIE;
+  
 
-  // Figure out where we are going to send the output.
-  std::unique_ptr<tool_output_file> Out =
-      GetOutputStream(TheTarget->getName(), TheTriple.getOS(), argv[0]);
+  //Jackson Korba 9/30/14
+  //OwningPtr<targetMachine>
+  std::unique_ptr<TargetMachine>
+    target(TheTarget->createTargetMachine(TheTriple.getTriple(),
+                                          MCPU.getValue(), FeaturesStr, Options,
+                                          RelocModel.getValue(), CMModel.getValue(), OLvl));
+  assert(target.get() && "Could not allocate target machine!");
+  assert(mod && "Should have exited after outputting help!");
+  TargetMachine &Target = *target.get();
+
+  // Disable .loc support for older OS X versions.
+  if (TheTriple.isMacOSX() &&
+      TheTriple.isMacOSXVersionLT(10, 6)){}
+    //TODO: Find a replacement to this function
+    /* Greg Simpson 6-09-13
+    no member named setMCUseLoc
+    removed statement
+    Target.setMCUseLoc(false);  */
+
+  //Jackson Korba 9/30/14 
+  std::unique_ptr<tool_output_file> Out
+    (GetOutputStream(TheTarget->getName(), TheTriple.getOS(), argv[0]));
   if (!Out) return 1;
 
   // Build up all of the passes that we want to do to the module.

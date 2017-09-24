@@ -32,6 +32,8 @@
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Transforms/Scalar.h"
 
+#include <set>
+
 namespace {
   using namespace llvm;
 
@@ -97,7 +99,7 @@ namespace {
       FPCounter = 0;
     }
 
-    virtual const char *getPassName() const { return "C backend"; }
+    virtual StringRef getPassName() const { return "C backend"; }
 
     void getAnalysisUsage(AnalysisUsage &AU) const {
       AU.addRequired<LoopInfoWrapperPass>();
@@ -112,6 +114,7 @@ namespace {
 
     void generateHeader(Module &M);
     void declareOneGlobalVariable(GlobalVariable* I);
+    void declareOneGlobalVariable(Module::global_iterator I) { declareOneGlobalVariable(&I.operator*()); }
 
     void forwardDeclareStructs(raw_ostream &Out, Type *Ty, std::set<Type*> &TypesPrinted);
     void forwardDeclareFunctionTypedefs(raw_ostream &Out, Type *Ty, std::set<Type*> &TypesPrinted);
@@ -122,6 +125,9 @@ namespace {
                            Function::ArgumentListType *ArgList);
     raw_ostream &printFunctionProto(raw_ostream &Out, Function *F) {
       return printFunctionProto(Out, F->getFunctionType(), std::make_pair(F->getAttributes(), F->getCallingConv()), GetValueName(F), NULL);
+    }
+    raw_ostream &printFunctionProto(raw_ostream &Out, Module::iterator I) {
+      return printFunctionProto(Out, &I.operator*());
     }
 
     raw_ostream &printFunctionDeclaration(raw_ostream &Out, FunctionType *Ty,
@@ -136,9 +142,13 @@ namespace {
     raw_ostream &printTypeString(raw_ostream &Out, Type *Ty, bool isSigned);
 
     std::string getStructName(StructType *ST);
+    std::string getStructName(StructType &ST) { return getStructName(&ST); }
     std::string getFunctionName(FunctionType *FT, std::pair<AttributeSet, CallingConv::ID> PAL = std::make_pair(AttributeSet(), CallingConv::C));
+    std::string getFunctionName(FunctionType &FT, std::pair<AttributeSet, CallingConv::ID> PAL = std::make_pair(AttributeSet(), CallingConv::C)) { return getFunctionName(&FT, PAL); }
     std::string getArrayName(ArrayType *AT);
+    std::string getArrayName(ArrayType &AT) { return getArrayName(&AT); }
     std::string getVectorName(VectorType *VT, bool Aligned);
+    std::string getVectorName(VectorType &VT, bool Aligned) { return getVectorName(&VT, Aligned); }
 
     enum OperandContext {
         ContextNormal,
@@ -153,6 +163,7 @@ namespace {
 
     void writeOperandDeref(Value *Operand);
     void writeOperand(Value *Operand, enum OperandContext Context = ContextNormal);
+    template <typename TOperandIterator> void writeOperand(TOperandIterator& it, enum OperandContext Context = ContextNormal) { writeOperand(&*it); }
     void writeInstComputationInline(Instruction &I);
     void writeOperandInternal(Value *Operand, enum OperandContext Context = ContextNormal);
     void writeOperandWithCast(Value* Operand, unsigned Opcode);
@@ -196,6 +207,7 @@ namespace {
     bool isAddressExposed(Value *V) const;
     bool isInlinableInst(Instruction &I) const;
     AllocaInst *isDirectAlloca(Value *V) const;
+    AllocaInst *isDirectAlloca(Value &V) const { return this->isDirectAlloca(&V); }
     bool isInlineAsm(Instruction& I) const;
 
     // Instruction visitation functions
@@ -247,6 +259,7 @@ namespace {
     void outputLValue(Instruction *I) {
       Out << "  " << GetValueName(I) << " = ";
     }
+    template <typename TIterator> void outputLValue(TIterator I) { return outputLValue(&*I); }
 
     bool isGotoCodeNecessary(BasicBlock *From, BasicBlock *To);
     void printPHICopiesForSuccessor(BasicBlock *CurBlock,
@@ -256,5 +269,8 @@ namespace {
     void printGEPExpression(Value *Ptr, gep_type_iterator I, gep_type_iterator E);
 
     std::string GetValueName(Value *Operand);
+    std::string GetValueName(Module::global_iterator I) { return GetValueName(&*I); }
+    std::string GetValueName(Function::arg_iterator I) { return GetValueName(&*I); }
+    std::string GetValueName(BasicBlock::iterator I) { return GetValueName(&*I); }
   };
 }
