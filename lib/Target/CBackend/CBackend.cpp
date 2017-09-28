@@ -2887,6 +2887,8 @@ void CWriter::printFunction(Function &F) {
   // print local variable information for the function
   for (inst_iterator I = inst_begin(&F), E = inst_end(&F); I != E; ++I) {
     if (AllocaInst *AI = isDirectAlloca(&*I)) {
+      if( AI->getAllocatedType()->isEmptyTy() ) continue;  // Ignore empty type local variable
+
       unsigned Alignment = AI->getAlignment();
       bool IsOveraligned = Alignment &&
         Alignment > TD->getABITypeAlignment(AI->getAllocatedType());
@@ -4264,6 +4266,12 @@ void CWriter::visitAllocaInst(AllocaInst &I) {
 
 void CWriter::printGEPExpression(Value *Ptr, gep_type_iterator I,
                                  gep_type_iterator E) {
+  Type* OperandType = Ptr->getType();
+  if( OperandType->isPointerTy() && isEmptyType(OperandType->getPointerElementType()) ) {
+    // If the operand type is a pointer to an empty type, just output NULL pointer.
+    Out << "0";
+    return;
+  }
 
   // If there are no indices, just print out the pointer.
   if (I == E) {
